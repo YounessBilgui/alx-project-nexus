@@ -395,8 +395,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For questions, suggestions, or collaboration opportunities:
 - Discord: #ProDevProjectNexus
-- Email: [your-email@example.com]
-- LinkedIn: [Your LinkedIn Profile]
+- LinkedIn: [Youness Bilgui]
 
 ---
 
