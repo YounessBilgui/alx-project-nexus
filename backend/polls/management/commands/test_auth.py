@@ -2,12 +2,13 @@
 Management command to test JWT authentication and rate limiting functionality.
 """
 
-import requests
 import json
 import time
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
+
+import requests
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
