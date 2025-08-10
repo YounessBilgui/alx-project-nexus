@@ -55,8 +55,8 @@ urlpatterns = [
         "api/redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
     ),
     path("api/schema/", schema_view.without_ui(cache_timeout=0), name="schema-json"),
-    # Include polls app URLs
-    path("", include("polls.urls")),
+    # Include polls app URLs with namespace
+    path("", include(("polls.urls", "polls"), namespace="polls")),
 ]
 
 # Add static files serving for development/Docker

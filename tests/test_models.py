@@ -1,8 +1,8 @@
+
 """
 Test models for the ALX Project Nexus - Online Poll System
 """
 
-import pytest
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
