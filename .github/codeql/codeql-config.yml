@@ -1,0 +1,16 @@
+name: "ALX Project Nexus Security Analysis"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-and-quality
+
+paths:
+  - backend/
+  - tests/
+
+paths-ignore:
+  - backend/staticfiles/
+  - backend/*/migrations/
+  - venv/
+  - __pycache__/

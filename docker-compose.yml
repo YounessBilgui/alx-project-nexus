@@ -34,7 +34,7 @@ services:
              python manage.py collectstatic --noinput &&
              gunicorn --bind 0.0.0.0:8000 --workers 3 pollsystem.wsgi:application"
     volumes:
-      - .:/app
+      - ./backend:/app
       - static_volume:/app/staticfiles
     ports:
       - "8000:8000"
@@ -55,7 +55,7 @@ services:
     build: .
     command: celery -A pollsystem worker -l info
     volumes:
-      - .:/app
+      - ./backend:/app
     environment:
       - DEBUG=True
       - SECRET_KEY=django-insecure-docker-development-key-change-in-production
@@ -73,7 +73,7 @@ services:
     build: .
     command: celery -A pollsystem beat -l info
     volumes:
-      - .:/app
+      - ./backend:/app
     environment:
       - DEBUG=True
       - SECRET_KEY=django-insecure-docker-development-key-change-in-production
