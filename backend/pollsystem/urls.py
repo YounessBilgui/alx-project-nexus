@@ -43,6 +43,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # JWT Authentication endpoints
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/auth/login/", TokenObtainPairView.as_view(), name="api_login"),  # Alias for tests
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/auth/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     # API Documentation

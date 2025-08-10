@@ -108,7 +108,7 @@ class PollOptionModelTest(TestCase):
             poll=self.poll,
             text="Option 1"
         )
-        self.assertEqual(str(option), "Option 1")
+        self.assertEqual(str(option), "Test Poll - Option 1")
         
     def test_multiple_options_for_poll(self):
         """Test creating multiple options for a poll"""

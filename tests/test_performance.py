@@ -102,13 +102,13 @@ class PollQueryPerformanceTest(PerformanceTestCase):
         
         option = PollOption.objects.create(poll=poll, text="Option 1")
         
-        # Create many votes
+        # Create many votes with unique IPs
         votes = []
         for i in range(1000):
             vote = Vote.objects.create(
                 poll=poll,
                 option=option,
-                voter_ip=f"192.168.1.{i % 255}"
+                voter_ip=f"192.168.{i // 255}.{i % 255}"
             )
             votes.append(vote)
             
@@ -185,7 +185,7 @@ class ConcurrentVotingTest(TransactionTestCase):
         
         def create_vote(ip_suffix):
             try:
-                voter_ip = f"192.168.1.{ip_suffix}"
+                voter_ip = f"10.0.0.{ip_suffix}"  # Use different subnet to avoid conflicts
                 vote = Vote.objects.create(
                     poll=self.poll,
                     option=self.option,

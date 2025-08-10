@@ -34,7 +34,11 @@ class PollAPITest(APITestCase):
         self.poll_data = {
             'title': 'Test Poll',
             'description': 'Test Description',
-            'expires_at': (timezone.now() + timedelta(hours=24)).isoformat()
+            'expires_at': (timezone.now() + timedelta(hours=24)).isoformat(),
+            'options': [
+                {'text': 'Option 1'},
+                {'text': 'Option 2'}
+            ]
         }
         
     def test_create_poll_authenticated(self):
@@ -314,9 +318,9 @@ class AuthenticationAPITest(APITestCase):
             'password': 'testpass123'
         }
         
-        response = self.client.post('/api/auth/login/', login_data, format='json')
+        response = self.client.post('/api/auth/token/', login_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('token', response.data)
+        self.assertIn('access', response.data)
         
     def test_jwt_token_authentication(self):
         """Test JWT token authentication"""
@@ -328,8 +332,8 @@ class AuthenticationAPITest(APITestCase):
             'password': 'testpass123'
         }
         
-        response = self.client.post('/api/auth/login/', login_data, format='json')
-        token = response.data['token']
+        response = self.client.post('/api/auth/token/', login_data, format='json')
+        token = response.data['access']
         
         # Use token for authenticated request
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
@@ -337,7 +341,11 @@ class AuthenticationAPITest(APITestCase):
         poll_data = {
             'title': 'Test Poll',
             'description': 'Test Description',
-            'expires_at': (timezone.now() + timedelta(hours=24)).isoformat()
+            'expires_at': (timezone.now() + timedelta(hours=24)).isoformat(),
+            'options': [
+                {'text': 'Option 1'},
+                {'text': 'Option 2'}
+            ]
         }
         
         response = self.client.post('/api/polls/', poll_data, format='json')
@@ -381,7 +389,11 @@ class DataValidationAPITest(APITestCase):
         poll_data = {
             'title': '',
             'description': 'Test Description',
-            'expires_at': (timezone.now() + timedelta(hours=24)).isoformat()
+            'expires_at': (timezone.now() + timedelta(hours=24)).isoformat(),
+            'options': [
+                {'text': 'Option 1'},
+                {'text': 'Option 2'}
+            ]
         }
         
         response = self.client.post('/api/polls/', poll_data, format='json')
@@ -392,7 +404,11 @@ class DataValidationAPITest(APITestCase):
         poll_data = {
             'title': 'Test Poll',
             'description': 'Test Description',
-            'expires_at': (timezone.now() - timedelta(hours=1)).isoformat()
+            'expires_at': (timezone.now() - timedelta(hours=1)).isoformat(),
+            'options': [
+                {'text': 'Option 1'},
+                {'text': 'Option 2'}
+            ]
         }
         
         response = self.client.post('/api/polls/', poll_data, format='json')
