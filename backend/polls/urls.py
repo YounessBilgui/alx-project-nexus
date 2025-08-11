@@ -3,15 +3,8 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .auth_views import register
-from .views import (
-    PollOptionViewSet,
-    PollViewSet,
-    VoteViewSet,
-    detail,
-    index,
-    results,
-    vote,
-)
+from .views import (PollOptionViewSet, PollViewSet, VoteViewSet, detail, index,
+                    results, vote)
 
 app_name = "polls"
 
