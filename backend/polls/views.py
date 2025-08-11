@@ -15,10 +15,16 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 from .models import Poll, PollOption, Vote
-from .serializers import (PollCreateSerializer, PollOptionStandaloneSerializer,
-                          PollOptionUpdateSerializer, PollResultSerializer,
-                          PollSerializer, PollUpdateSerializer,
-                          VoteCreateSerializer, VoteSerializer)
+from .serializers import (
+    PollCreateSerializer,
+    PollOptionStandaloneSerializer,
+    PollOptionUpdateSerializer,
+    PollResultSerializer,
+    PollSerializer,
+    PollUpdateSerializer,
+    VoteCreateSerializer,
+    VoteSerializer,
+)
 
 
 # Custom throttle classes for specific operations
