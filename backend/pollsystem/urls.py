@@ -18,13 +18,14 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView, TokenVerifyView)
-from django.contrib.auth import views as auth_views
+
 from polls.auth_views import register
 
 # Swagger/OpenAPI Schema
@@ -45,7 +46,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # JWT Authentication endpoints
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/auth/login/", TokenObtainPairView.as_view(), name="api_login"),  # Alias for tests
+    path(
+        "api/auth/login/", TokenObtainPairView.as_view(), name="api_login"
+    ),  # Alias for tests
     path("api/auth/register/", register, name="api_register"),  # API registration
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/auth/token/verify/", TokenVerifyView.as_view(), name="token_verify"),

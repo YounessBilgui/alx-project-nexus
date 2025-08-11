@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import dj_database_url
 from decouple import config
@@ -55,7 +55,7 @@ INSTALLED_APPS = [
 ]
 
 # Add django_ratelimit only if not running tests
-if 'test' not in sys.argv:
+if "test" not in sys.argv:
     INSTALLED_APPS.append("django_ratelimit")
 
 MIDDLEWARE = [
@@ -233,12 +233,12 @@ SIMPLE_JWT = {
 }
 
 # Rate Limiting Configuration (only for non-test environments)
-if 'test' not in sys.argv:
+if "test" not in sys.argv:
     RATELIMIT_USE_CACHE = "default"
     RATELIMIT_ENABLE = True
 
 # Cache Configuration
-if 'test' in sys.argv:
+if "test" in sys.argv:
     # Use local memory cache for testing
     CACHES = {
         "default": {
@@ -257,5 +257,5 @@ else:
     }
 
 # Authentication URLs
-LOGIN_REDIRECT_URL = '/polls/'
-LOGOUT_REDIRECT_URL = '/polls/'
+LOGIN_REDIRECT_URL = "/polls/"
+LOGOUT_REDIRECT_URL = "/polls/"

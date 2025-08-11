@@ -1,10 +1,10 @@
-
-
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import PollViewSet, PollOptionViewSet, VoteViewSet, index, detail, results, vote
-from .auth_views import register
 from django.contrib.auth import views as auth_views
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+
+from .auth_views import register
+from .views import (PollOptionViewSet, PollViewSet, VoteViewSet, detail, index,
+                    results, vote)
 
 app_name = "polls"
 
@@ -16,7 +16,11 @@ router.register(r"votes", VoteViewSet, basename="votes")
 urlpatterns = [
     path("api/", include(router.urls)),
     # Nested poll options endpoint
-    path("api/polls/<int:poll_id>/options/", PollOptionViewSet.as_view({"get": "list"}), name="poll-options-list"),
+    path(
+        "api/polls/<int:poll_id>/options/",
+        PollOptionViewSet.as_view({"get": "list"}),
+        name="poll-options-list",
+    ),
     # Django template views
     path("polls/", index, name="index"),
     path("polls/<int:poll_id>/", detail, name="detail"),

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
-from rest_framework import serializers
 from django.utils import timezone
+from rest_framework import serializers
 
 from .models import Poll, PollOption, Vote
 
@@ -54,28 +54,30 @@ class VoteCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Validate that option belongs to the poll."""
-        poll = data.get('poll')
-        option = data.get('option')
-        
+        poll = data.get("poll")
+        option = data.get("option")
+
         if option.poll != poll:
-            raise serializers.ValidationError("Option does not belong to the specified poll.")
-        
+            raise serializers.ValidationError(
+                "Option does not belong to the specified poll."
+            )
+
         return data
 
     def create(self, validated_data):
         """Create vote with IP address."""
         # Get IP from request context
-        request = self.context.get('request')
+        request = self.context.get("request")
         if request:
-            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
             if x_forwarded_for:
-                voter_ip = x_forwarded_for.split(',')[0]
+                voter_ip = x_forwarded_for.split(",")[0]
             else:
-                voter_ip = request.META.get('REMOTE_ADDR')
+                voter_ip = request.META.get("REMOTE_ADDR")
         else:
-            voter_ip = '127.0.0.1'  # Default for tests
-        
-        validated_data['voter_ip'] = voter_ip
+            voter_ip = "127.0.0.1"  # Default for tests
+
+        validated_data["voter_ip"] = voter_ip
         return super().create(validated_data)
 
 
@@ -162,14 +164,14 @@ class PollCreateSerializer(serializers.ModelSerializer):
 
         # Set the creator from the request context
         request = self.context.get("request")
-        if request and hasattr(request, 'user') and request.user.is_authenticated:
+        if request and hasattr(request, "user") and request.user.is_authenticated:
             validated_data["created_by"] = request.user
         else:
             # For tests or when no authenticated user, get or create a default user
             from django.contrib.auth.models import User
+
             default_user, created = User.objects.get_or_create(
-                username='test_user', 
-                defaults={'email': 'test@example.com'}
+                username="test_user", defaults={"email": "test@example.com"}
             )
             validated_data["created_by"] = default_user
 

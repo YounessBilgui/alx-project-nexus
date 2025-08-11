@@ -1,6 +1,8 @@
+from django.contrib import messages
 from django.db import transaction
 from django.db.models import F
-from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
@@ -11,13 +13,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
-from django.http import HttpResponse
-from django.contrib import messages
 
 from .models import Poll, PollOption, Vote
-from .serializers import (PollCreateSerializer, PollResultSerializer,
-                          PollSerializer, VoteSerializer, PollOptionStandaloneSerializer,
-                          VoteCreateSerializer, PollOptionUpdateSerializer, PollUpdateSerializer)
+from .serializers import (PollCreateSerializer, PollOptionStandaloneSerializer,
+                          PollOptionUpdateSerializer, PollResultSerializer,
+                          PollSerializer, PollUpdateSerializer,
+                          VoteCreateSerializer, VoteSerializer)
 
 
 # Custom throttle classes for specific operations
@@ -64,11 +65,12 @@ class PollViewSet(viewsets.ModelViewSet):
     def check_object_permissions(self, request, obj):
         """Check if user has permission to modify this poll."""
         super().check_object_permissions(request, obj)
-        
+
         # For update/delete actions, only poll owner can modify
         if self.action in ["update", "partial_update", "destroy"]:
             if obj.created_by != request.user:
                 from rest_framework.exceptions import PermissionDenied
+
                 raise PermissionDenied("You can only modify polls you created.")
 
     def get_throttles(self):
@@ -218,21 +220,21 @@ class PollViewSet(viewsets.ModelViewSet):
 
 class PollOptionViewSet(viewsets.ModelViewSet):
     """ViewSet for managing poll options."""
-    
+
     queryset = PollOption.objects.all()
     permission_classes = [AllowAny]
-    
+
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
-        if self.action in ['update', 'partial_update']:
+        if self.action in ["update", "partial_update"]:
             return PollOptionUpdateSerializer
         return PollOptionStandaloneSerializer
-    
+
     def get_queryset(self):
         """Filter options by poll if poll_pk or poll_id is provided."""
         queryset = PollOption.objects.all()
         # Check for both poll_pk (router) and poll_id (custom URL)
-        poll_pk = self.kwargs.get('poll_pk') or self.kwargs.get('poll_id')
+        poll_pk = self.kwargs.get("poll_pk") or self.kwargs.get("poll_id")
         if poll_pk:
             queryset = queryset.filter(poll_id=poll_pk)
         return queryset
@@ -240,11 +242,11 @@ class PollOptionViewSet(viewsets.ModelViewSet):
 
 class VoteViewSet(viewsets.ModelViewSet):
     """ViewSet for managing votes."""
-    
+
     queryset = Vote.objects.all()
     serializer_class = VoteCreateSerializer
     permission_classes = [AllowAny]
-    
+
     def get_queryset(self):
         """Filter votes by poll if needed."""
         return Vote.objects.all()
@@ -253,42 +255,43 @@ class VoteViewSet(viewsets.ModelViewSet):
         """Create a vote with duplicate prevention."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         # Get IP address
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            voter_ip = x_forwarded_for.split(',')[0]
+            voter_ip = x_forwarded_for.split(",")[0]
         else:
-            voter_ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
-        
-        poll = serializer.validated_data['poll']
-        option = serializer.validated_data['option']
-        
+            voter_ip = request.META.get("REMOTE_ADDR", "127.0.0.1")
+
+        poll = serializer.validated_data["poll"]
+        option = serializer.validated_data["option"]
+
         # Check for duplicate vote
         if Vote.objects.filter(poll=poll, voter_ip=voter_ip).exists():
             return Response(
                 {"error": "You have already voted in this poll"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Create the vote
         vote = serializer.save(voter_ip=voter_ip)
-        
+
         # Update option vote count
         from django.db.models import F
-        option.vote_count = F('vote_count') + 1
-        option.save(update_fields=['vote_count'])
-        
+
+        option.vote_count = F("vote_count") + 1
+        option.save(update_fields=["vote_count"])
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class VoteViewSet(viewsets.ModelViewSet):
     """ViewSet for managing votes."""
-    
+
     queryset = Vote.objects.all()
     serializer_class = VoteCreateSerializer
     permission_classes = [AllowAny]
-    
+
     def get_queryset(self):
         """Filter votes by poll if needed."""
         return Vote.objects.all()
@@ -297,97 +300,106 @@ class VoteViewSet(viewsets.ModelViewSet):
         """Create a vote with duplicate prevention."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         # Get IP address
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            voter_ip = x_forwarded_for.split(',')[0]
+            voter_ip = x_forwarded_for.split(",")[0]
         else:
-            voter_ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
-        
-        poll = serializer.validated_data['poll']
-        option = serializer.validated_data['option']
-        
+            voter_ip = request.META.get("REMOTE_ADDR", "127.0.0.1")
+
+        poll = serializer.validated_data["poll"]
+        option = serializer.validated_data["option"]
+
         # Check if poll is expired
         if poll.is_expired:
             return Response(
-                {"error": "Poll has expired"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Poll has expired"}, status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Check for duplicate vote
         if Vote.objects.filter(poll=poll, voter_ip=voter_ip).exists():
             return Response(
                 {"error": "You have already voted in this poll"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Create the vote
         vote = serializer.save(voter_ip=voter_ip)
-        
+
         # Update option vote count atomically
-        PollOption.objects.filter(id=option.id).update(
-            vote_count=F('vote_count') + 1
-        )
-        
+        PollOption.objects.filter(id=option.id).update(vote_count=F("vote_count") + 1)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # Django template views for tests
 def index(request):
     """Poll list view."""
-    latest_poll_list = Poll.objects.filter(is_active=True).order_by('-created_at')[:5]
-    context = {'latest_poll_list': latest_poll_list}
-    return render(request, 'polls/index.html', context)
+    latest_poll_list = Poll.objects.filter(is_active=True).order_by("-created_at")[:5]
+    context = {"latest_poll_list": latest_poll_list}
+    return render(request, "polls/index.html", context)
 
 
 def detail(request, poll_id):
     """Poll detail view."""
     poll = get_object_or_404(Poll, pk=poll_id)
-    return render(request, 'polls/detail.html', {'poll': poll})
+    return render(request, "polls/detail.html", {"poll": poll})
 
 
 def results(request, poll_id):
     """Poll results view."""
     poll = get_object_or_404(Poll, pk=poll_id)
-    return render(request, 'polls/results.html', {'poll': poll})
+    return render(request, "polls/results.html", {"poll": poll})
 
 
 def vote(request, poll_id):
     """Vote on a poll."""
     poll = get_object_or_404(Poll, pk=poll_id)
-    
-    if request.method == 'POST':
+
+    if request.method == "POST":
         try:
-            selected_option = poll.options.get(pk=request.POST['choice'])
+            selected_option = poll.options.get(pk=request.POST["choice"])
         except (KeyError, PollOption.DoesNotExist):
-            return render(request, 'polls/detail.html', {
-                'poll': poll,
-                'error_message': "You didn't select a choice.",
-            })
+            return render(
+                request,
+                "polls/detail.html",
+                {
+                    "poll": poll,
+                    "error_message": "You didn't select a choice.",
+                },
+            )
         except ValueError:
             # Handle case where choice is not a valid integer
-            return render(request, 'polls/detail.html', {
-                'poll': poll,
-                'error_message': "You didn't select a choice.",
-            })
-        
+            return render(
+                request,
+                "polls/detail.html",
+                {
+                    "poll": poll,
+                    "error_message": "You didn't select a choice.",
+                },
+            )
+
         # Create vote
-        voter_ip = request.META.get('REMOTE_ADDR')
-        
+        voter_ip = request.META.get("REMOTE_ADDR")
+
         # Check for duplicate votes
         if Vote.objects.filter(poll=poll, voter_ip=voter_ip).exists():
-            return render(request, 'polls/detail.html', {
-                'poll': poll,
-                'error_message': "You have already voted in this poll.",
-            })
-        
+            return render(
+                request,
+                "polls/detail.html",
+                {
+                    "poll": poll,
+                    "error_message": "You have already voted in this poll.",
+                },
+            )
+
         Vote.objects.create(poll=poll, option=selected_option, voter_ip=voter_ip)
-        
+
         # Update option vote count
         selected_option.vote_count += 1
         selected_option.save()
-        
-        return redirect('polls:results', poll_id=poll.id)
-    
-    return render(request, 'polls/detail.html', {'poll': poll})
+
+        return redirect("polls:results", poll_id=poll.id)
+
+    return render(request, "polls/detail.html", {"poll": poll})
