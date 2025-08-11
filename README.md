@@ -1,20 +1,63 @@
-# ALX Project Nexus - Backend Engineering Documentation Hub
 
-Welcome to **Project Nexus**, a comprehensive documentation repository showcasing major learnings from the ProDev Backend Engineering program. This repository serves as a k- **- **Perf## 🛠️ Major Learnings
+# ALX Project Nexus
 
-### Key Technologies Covered
+A Django REST API for managing polls, voting, and results. This project demonstrates best practices in API design, authentication, and deployment.
 
-#### **Python & Django**ization**: Scalable vote counting and result computation
+## Features
+- Create, update, and delete polls
+- Add options to polls
+- Vote on poll options
+- View poll results
+- JWT authentication
+- Rate limiting
+- Pagination
+- Template-based views
 
-## 🛠️ Major Learnings
+## Setup Instructions
+1. Clone the repository:
+    ```sh
+    git clone https://github.com/YounessBilgui/alx-project-nexus.git
+    cd alx-project-nexus
+    ```
+2. Create and activate a virtual environment:
+    ```sh
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+3. Install dependencies:
+    ```sh
+    pip install -r requirements.txt
+    ```
+4. Run migrations:
+    ```sh
+    cd backend
+    python manage.py migrate
+    ```
+5. Start the development server:
+    ```sh
+    python manage.py runserver
+    ```
 
-### Key Technologies Covered
+## API Endpoints
+- `POST /api/polls/` - Create a poll
+- `GET /api/polls/` - List polls
+- `GET /api/polls/{id}/` - Poll details
+- `POST /api/polls/{id}/options/` - Add option
+- `POST /api/polls/{id}/vote/` - Vote
+- `GET /api/polls/{id}/results/` - Poll results
 
-#### **Python & Django**ce Optimization**: Scalable vote counting and result computation
+## Deployment
+- See `.github/workflows/ci.yml` for CI setup
+- Environment variables: configure in `.env` or via CI/CD
 
-## 🛠️ Major Learnings
+## Author
+Youness Bilgui
 
-### Key Technologies Coveredhub for backend engineering concepts, tools, and best practices.
+## License
+MIT
+
+---
+For more details, see the code and comments in the repository.
 
 ## 🎯 Project Objective
 
