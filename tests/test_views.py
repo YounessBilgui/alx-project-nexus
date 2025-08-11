@@ -166,8 +166,8 @@ class VoteViewTest(TestCase):
             {}
         )
         
-        # Should show error message
-        self.assertContains(response, "You didn't select a choice")
+        # Should show error message (check for HTML-escaped version)
+        self.assertContains(response, "You didn&#x27;t select a choice")
         
         # Verify no vote was created
         self.assertEqual(Vote.objects.filter(poll=self.poll).count(), 0)
@@ -179,8 +179,8 @@ class VoteViewTest(TestCase):
             {'choice': 999}
         )
         
-        # Should show error message
-        self.assertContains(response, "You didn't select a choice")
+        # Should show error message (check for HTML-escaped version)
+        self.assertContains(response, "You didn&#x27;t select a choice")
         
     def test_duplicate_vote_prevention(self):
         """Test that duplicate votes are prevented"""
@@ -321,7 +321,11 @@ class SecurityTest(TestCase):
         
     def test_csrf_protection(self):
         """Test CSRF protection on forms"""
-        response = self.client.post(
+        # Create a client that enforces CSRF protection
+        from django.test.client import Client
+        csrf_client = Client(enforce_csrf_checks=True)
+        
+        response = csrf_client.post(
             reverse('polls:vote', args=[self.poll.id]),
             {'choice': 1}
         )

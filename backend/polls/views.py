@@ -365,6 +365,12 @@ def vote(request, poll_id):
                 'poll': poll,
                 'error_message': "You didn't select a choice.",
             })
+        except ValueError:
+            # Handle case where choice is not a valid integer
+            return render(request, 'polls/detail.html', {
+                'poll': poll,
+                'error_message': "You didn't select a choice.",
+            })
         
         # Create vote
         voter_ip = request.META.get('REMOTE_ADDR')
@@ -377,6 +383,11 @@ def vote(request, poll_id):
             })
         
         Vote.objects.create(poll=poll, option=selected_option, voter_ip=voter_ip)
+        
+        # Update option vote count
+        selected_option.vote_count += 1
+        selected_option.save()
+        
         return redirect('polls:results', poll_id=poll.id)
     
     return render(request, 'polls/detail.html', {'poll': poll})

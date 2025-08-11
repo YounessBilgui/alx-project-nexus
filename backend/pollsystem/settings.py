@@ -255,3 +255,7 @@ else:
             },
         }
     }
+
+# Authentication URLs
+LOGIN_REDIRECT_URL = '/polls/'
+LOGOUT_REDIRECT_URL = '/polls/'
