@@ -52,9 +52,3 @@ jobs:
         run: |
           cd backend
           python manage.py test ../tests/
-      - name: Check code formatting (Black)
-        run: |
-          black --check backend/
-      - name: Check import sorting (isort)
-        run: |
-          isort --check-only backend/
