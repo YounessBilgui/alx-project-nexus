@@ -57,7 +57,6 @@ class PollAPITest(APITestCase):
         
     def test_list_polls(self):
         """Test listing polls"""
-        # Create test polls
         poll1 = Poll.objects.create(
             title="Poll 1",
             description="Description 1",
@@ -73,7 +72,14 @@ class PollAPITest(APITestCase):
         
         response = self.client.get('/api/polls/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        
+        # Handle paginated response
+        if 'results' in response.data:
+            polls_data = response.data['results']
+        else:
+            polls_data = response.data
+            
+        self.assertEqual(len(polls_data), 2)
         
     def test_poll_detail(self):
         """Test retrieving poll detail"""
@@ -184,7 +190,14 @@ class PollOptionAPITest(APITestCase):
         
         response = self.client.get(f'/api/polls/{self.poll.id}/options/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        
+        # Handle paginated response
+        if 'results' in response.data:
+            options_data = response.data['results']
+        else:
+            options_data = response.data
+            
+        self.assertEqual(len(options_data), 2)
         
     def test_update_poll_option_owner(self):
         """Test updating poll option by poll owner"""

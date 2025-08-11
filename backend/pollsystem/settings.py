@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import sys
 
 import dj_database_url
 from decouple import config
@@ -49,10 +50,13 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_yasg",
     "django_extensions",
-    "django_ratelimit",
     # Local apps
     "polls",
 ]
+
+# Add django_ratelimit only if not running tests
+if 'test' not in sys.argv:
+    INSTALLED_APPS.append("django_ratelimit")
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -228,17 +232,26 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=7),
 }
 
-# Rate Limiting Configuration
-RATELIMIT_USE_CACHE = "default"
-RATELIMIT_ENABLE = True
+# Rate Limiting Configuration (only for non-test environments)
+if 'test' not in sys.argv:
+    RATELIMIT_USE_CACHE = "default"
+    RATELIMIT_ENABLE = True
 
-# Cache Configuration for Rate Limiting
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": config("REDIS_URL", default="redis://localhost:6379/1"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
+# Cache Configuration
+if 'test' in sys.argv:
+    # Use local memory cache for testing
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": config("REDIS_URL", default="redis://localhost:6379/1"),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
+    }
