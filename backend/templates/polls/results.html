@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results for {{ poll.title }}</title>
+</head>
+<body>
+    <h1>{{ poll.title }}</h1>
+    
+    <ul>
+    {% for option in poll.options.all %}
+        <li>{{ option.text }} -- {{ option.vote_count }} vote{{ option.vote_count|pluralize }}</li>
+    {% endfor %}
+    </ul>
+    
+    <a href="{% url 'polls:detail' poll.id %}">Vote again?</a>
+</body>
+</html>

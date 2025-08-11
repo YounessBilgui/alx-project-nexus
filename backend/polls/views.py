@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.db.models import F
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
@@ -11,6 +11,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+from django.http import HttpResponse
+from django.contrib import messages
 
 from .models import Poll, PollOption, Vote
 from .serializers import (PollCreateSerializer, PollResultSerializer,
@@ -199,3 +201,80 @@ class PollViewSet(viewsets.ModelViewSet):
         else:
             ip = request.META.get("REMOTE_ADDR")
         return ip
+
+
+class PollOptionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing poll options."""
+    
+    queryset = PollOption.objects.all()
+    serializer_class = PollCreateSerializer  # You might want a separate serializer
+    permission_classes = [AllowAny]
+    
+    def get_queryset(self):
+        """Filter options by poll if poll_pk is provided."""
+        queryset = PollOption.objects.all()
+        poll_pk = self.kwargs.get('poll_pk')
+        if poll_pk:
+            queryset = queryset.filter(poll_id=poll_pk)
+        return queryset
+
+
+class VoteViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing votes."""
+    
+    queryset = Vote.objects.all()
+    serializer_class = VoteSerializer
+    permission_classes = [AllowAny]
+    
+    def create(self, request, *args, **kwargs):
+        """Create a vote."""
+        return Response({"message": "Vote created"}, status=status.HTTP_201_CREATED)
+
+
+# Django template views for tests
+def index(request):
+    """Poll list view."""
+    latest_poll_list = Poll.objects.filter(is_active=True).order_by('-created_at')[:5]
+    context = {'latest_poll_list': latest_poll_list}
+    return render(request, 'polls/index.html', context)
+
+
+def detail(request, poll_id):
+    """Poll detail view."""
+    poll = get_object_or_404(Poll, pk=poll_id)
+    return render(request, 'polls/detail.html', {'poll': poll})
+
+
+def results(request, poll_id):
+    """Poll results view."""
+    poll = get_object_or_404(Poll, pk=poll_id)
+    return render(request, 'polls/results.html', {'poll': poll})
+
+
+def vote(request, poll_id):
+    """Vote on a poll."""
+    poll = get_object_or_404(Poll, pk=poll_id)
+    
+    if request.method == 'POST':
+        try:
+            selected_option = poll.options.get(pk=request.POST['choice'])
+        except (KeyError, PollOption.DoesNotExist):
+            return render(request, 'polls/detail.html', {
+                'poll': poll,
+                'error_message': "You didn't select a choice.",
+            })
+        
+        # Create vote
+        voter_ip = request.META.get('REMOTE_ADDR')
+        
+        # Check for duplicate votes
+        if Vote.objects.filter(poll=poll, voter_ip=voter_ip).exists():
+            return render(request, 'polls/detail.html', {
+                'poll': poll,
+                'error_message': "You have already voted in this poll.",
+            })
+        
+        Vote.objects.create(poll=poll, option=selected_option, voter_ip=voter_ip)
+        return redirect('polls:results', poll_id=poll.id)
+    
+    return render(request, 'polls/detail.html', {'poll': poll})

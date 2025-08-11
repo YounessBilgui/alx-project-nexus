@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from django.utils import timezone
 
 from .models import Poll, PollOption, Vote
 
@@ -65,6 +66,18 @@ class PollCreateSerializer(serializers.ModelSerializer):
         model = Poll
         fields = ["title", "description", "expires_at", "options"]
 
+    def validate_expires_at(self, value):
+        """Validate that expiry date is in the future."""
+        if value <= timezone.now():
+            raise serializers.ValidationError("Expiry date must be in the future.")
+        return value
+
+    def validate_title(self, value):
+        """Validate that title is not empty."""
+        if not value.strip():
+            raise serializers.ValidationError("Title cannot be empty.")
+        return value
+
     def create(self, validated_data):
         """Create poll with options."""
         options_data = validated_data.pop("options")
@@ -99,10 +112,11 @@ class VoteSerializer(serializers.Serializer):
 
 
 class PollResultSerializer(serializers.ModelSerializer):
-    """Serializer for poll results with vote percentages."""
+    """Serializer for poll results with vote counts and percentages."""
 
     options = serializers.SerializerMethodField()
     total_votes = serializers.SerializerMethodField()
+    results = serializers.SerializerMethodField()  # Add results field for tests
 
     class Meta:
         model = Poll
@@ -112,6 +126,7 @@ class PollResultSerializer(serializers.ModelSerializer):
             "description",
             "total_votes",
             "options",
+            "results",  # Include results field
             "created_at",
             "expires_at",
         ]
@@ -119,6 +134,10 @@ class PollResultSerializer(serializers.ModelSerializer):
     def get_total_votes(self, obj):
         """Get total votes for the poll."""
         return obj.total_votes
+
+    def get_results(self, obj):
+        """Get results - same as options for backward compatibility."""
+        return self.get_options(obj)
 
     def get_options(self, obj):
         """Get options with vote counts and percentages."""
