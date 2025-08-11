@@ -24,6 +24,8 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView, TokenVerifyView)
+from django.contrib.auth import views as auth_views
+from polls.auth_views import register
 
 # Swagger/OpenAPI Schema
 schema_view = get_schema_view(
@@ -56,8 +58,12 @@ urlpatterns = [
         "api/redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
     ),
     path("api/schema/", schema_view.without_ui(cache_timeout=0), name="schema-json"),
-    # Include polls app URLs without namespace for global named URLs
-    path("", include("polls.urls")),
+    # Include polls app URLs with namespace for named reverse lookups
+    path("", include(("polls.urls", "polls"), namespace="polls")),
+    # Global login/logout/register endpoints for Django views
+    path("login/", auth_views.LoginView.as_view(), name="login"),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("register/", register, name="register"),
 ]
 
 # Add static files serving for development/Docker
